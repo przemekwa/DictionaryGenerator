@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "DictionaryGenerator": {
+      "commandName": "Project",
+      "commandLineArgs": "test_file.txt"
+    }
+  }
+}
