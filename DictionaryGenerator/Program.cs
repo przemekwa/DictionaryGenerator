@@ -18,7 +18,7 @@ namespace DictionaryGenerator
         {
             Console.WriteLine("DictionaryGenerator");
 
-            var result = new Dictionary<string, List<string>>();
+            var result = new Dictionary<string[], List<string>>();
             PrepareOutputFile();
             ReadDictionaryFile(args, result);
             WritePosgreSqlScript(result);
@@ -35,33 +35,47 @@ namespace DictionaryGenerator
             }
         }
 
-        private static void WritePosgreSqlScript(Dictionary<string, List<string>> result)
+        private static void WritePosgreSqlScript(Dictionary<string[], List<string>> result)
         {
-            
-
-            foreach (var item in result.Keys)
+            foreach (var splitIntems in result.Keys)
             {
-                var sb = new StringBuilder();
+                foreach (var item in splitIntems)
+                {
 
-                sb.Append("INSERT INTO public.\"DictionaryDefinitions\"(\"Id\", \"Name\", \"ParentId\", \"Created\", \"Modified\") VALUES (");
+                    var sb = new StringBuilder();
 
-                sb.AppendFormat(
-                    "{0},'{1}',{2},'{3}','{4}'", 
-                    definitionId, 
-                    item, 
-                    "null",
-                    DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture), 
-                    DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
-                sb.Append(");");
+                    sb.Append("INSERT INTO public.\"DictionaryDefinitions\"(\"Id\", \"Name\", \"ParentId\", \"Created\", \"Modified\") VALUES (");
 
-                sb.AppendLine();
-                sb.AppendLine();
+                    sb.AppendFormat(
+                        "{0},'{1}',{2},'{3}','{4}'", 
+                        ++definitionId, 
+                        item, 
+                        GetParentId(splitIntems, item, definitionId),
+                        DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture), 
+                        DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
+                    sb.Append(");");
 
-                File.AppendAllText(OutputFilename, sb.ToString());
+                    sb.AppendLine();
+                    sb.AppendLine();
 
-                WriteDictionaryValues(result[item], definitionId++);
+                    File.AppendAllText(OutputFilename, sb.ToString());
+
+
+                }
+
+                WriteDictionaryValues(result[splitIntems], definitionId);
 
             }
+        }
+
+        private static string GetParentId(string[] splitIntems, string item, int definitionId)
+        {
+            if (splitIntems.Length == 2 && splitIntems[1] == item)
+            {
+                return (--definitionId).ToString();
+            }
+
+            return "null";
         }
 
         private static void WriteDictionaryValues(List<string> lists, int v)
@@ -70,8 +84,6 @@ namespace DictionaryGenerator
 
             foreach (var item in lists)
             {
-                
-
                 sb.Append("INSERT INTO public.\"DictionaryValues\"(\"Id\", \"Value\", \"IsCustom\", \"DictionaryDefinitionId\", \"Created\", \"Modified\") VALUES (");
                 
                 sb.AppendFormat(
@@ -92,23 +104,23 @@ namespace DictionaryGenerator
             File.AppendAllText(OutputFilename, sb.ToString());
         }
 
-        private static void ReadDictionaryFile(string[] args, Dictionary<string, List<string>> result)
+        private static void ReadDictionaryFile(string[] args, Dictionary<string[], List<string>> result)
         {
             var inputFilePath = new FileInfo(args[0]);
             string[] allLine = File.ReadAllLines(inputFilePath.FullName);
             var isDictionaryDefinition = true;
-            var currentDictionaryDefinition = string.Empty;
+            var currentDictionaryDefinition = new string[1];
 
             var valueList = new List<string>();
-
 
             for (int i = 0; i < allLine.Length + 1; i++)
             {
                 if (allLine.Length == i || string.IsNullOrEmpty(allLine[i]))
                 {
                     isDictionaryDefinition = true;
+
                     result.Add(currentDictionaryDefinition, valueList);
-                    currentDictionaryDefinition = string.Empty;
+                    currentDictionaryDefinition = new string[1];
                     valueList = new List<string>();
 
                     continue;
@@ -116,7 +128,7 @@ namespace DictionaryGenerator
 
                 if (isDictionaryDefinition)
                 {
-                    currentDictionaryDefinition = allLine[i];
+                    currentDictionaryDefinition = allLine[i].Split('|');
                     isDictionaryDefinition = false;
                     i++;
                     continue;
