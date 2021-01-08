@@ -9,7 +9,7 @@ namespace DictionaryGenerator
     class Program
     {
         private const string DateFormat = "yyyy-MM-dd";
-        private const string OutputFilename = "script.sql";
+        private const string OutputFilename = "dictionaries.sql";
 
         private static int definitionId = 0;
         private static int valueId = 0;
@@ -56,7 +56,7 @@ namespace DictionaryGenerator
                             "{0},'{1}',{2},'{3}','{4}'",
                             definitionIds[item],
                             item,
-                            definitionIds[splitIntems[0]].ToString(),
+                            item == splitIntems[0]? "null" : definitionIds[splitIntems[0]].ToString(),
                             DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
                             DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
                         sb.Append(");");
