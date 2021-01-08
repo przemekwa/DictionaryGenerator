@@ -13,6 +13,7 @@ namespace DictionaryGenerator
 
         private static int definitionId = 0;
         private static int valueId = 0;
+        private static Dictionary<string, int> definitionIds = new Dictionary<string, int>();
 
         static void Main(string[] args)
         {
@@ -39,43 +40,40 @@ namespace DictionaryGenerator
         {
             foreach (var splitIntems in result.Keys)
             {
+                var lastKey = string.Empty;
+
                 foreach (var item in splitIntems)
                 {
+                    if (definitionIds.ContainsKey(item) == false)
+                    {
+                        definitionIds.Add(item, ++definitionId);
 
-                    var sb = new StringBuilder();
+                        var sb = new StringBuilder();
 
-                    sb.Append("INSERT INTO public.\"DictionaryDefinitions\"(\"Id\", \"Name\", \"ParentId\", \"Created\", \"Modified\") VALUES (");
+                        sb.Append("INSERT INTO public.\"DictionaryDefinitions\"(\"Id\", \"Name\", \"ParentId\", \"Created\", \"Modified\") VALUES (");
 
-                    sb.AppendFormat(
-                        "{0},'{1}',{2},'{3}','{4}'", 
-                        ++definitionId, 
-                        item, 
-                        GetParentId(splitIntems, item, definitionId),
-                        DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture), 
-                        DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
-                    sb.Append(");");
+                        sb.AppendFormat(
+                            "{0},'{1}',{2},'{3}','{4}'",
+                            definitionIds[item],
+                            item,
+                            definitionIds[splitIntems[0]].ToString(),
+                            DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
+                            DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
+                        sb.Append(");");
 
-                    sb.AppendLine();
-                    sb.AppendLine();
+                        sb.AppendLine();
+                        sb.AppendLine();
 
-                    File.AppendAllText(OutputFilename, sb.ToString());
+                        File.AppendAllText(OutputFilename, sb.ToString());
+                    }
 
+                    lastKey = item;
 
                 }
 
-                WriteDictionaryValues(result[splitIntems], definitionId);
+                WriteDictionaryValues(result[splitIntems], definitionIds[lastKey]);
 
             }
-        }
-
-        private static string GetParentId(string[] splitIntems, string item, int definitionId)
-        {
-            if (splitIntems.Length == 2 && splitIntems[1] == item)
-            {
-                return (--definitionId).ToString();
-            }
-
-            return "null";
         }
 
         private static void WriteDictionaryValues(List<string> lists, int v)
