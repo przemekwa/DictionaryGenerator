@@ -90,7 +90,7 @@ namespace DictionaryGenerator
                  "{0},'{1}','{2}',{3},'{4}','{5}'",
                  valueId++,
                  item,
-                 "false",
+                 GetIsCustom(item),
                  v,
                  DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
                  DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
@@ -102,6 +102,21 @@ namespace DictionaryGenerator
             }
 
             File.AppendAllText(OutputFilename, sb.ToString());
+        }
+
+        private static string GetIsCustom(string item)
+        {
+            if (item.ToLower().Contains("jakie?") 
+                || item.ToLower().Contains("jaki?") 
+                || item.ToLower().Contains("jakiego?") 
+                || item.ToLower().Contains("jakich?") 
+                || item.ToLower().Contains("jakim?")
+                || item.ToLower().Contains("tak/nie"))
+            {
+                return "true";
+            }
+
+            return "false";
         }
 
         private static void ReadDictionaryFile(string[] args, Dictionary<string[], List<string>> result)
