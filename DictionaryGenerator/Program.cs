@@ -41,6 +41,7 @@ namespace DictionaryGenerator
             foreach (var splitIntems in result.Keys)
             {
                 var lastKey = string.Empty;
+                var currentLevel = 0;
 
                 foreach (var item in splitIntems)
                 {
@@ -56,7 +57,7 @@ namespace DictionaryGenerator
                             "{0},'{1}',{2},'{3}','{4}'",
                             definitionIds[item],
                             item,
-                            item == splitIntems[0]? "null" : definitionIds[splitIntems[0]].ToString(),
+                            GetParrent(splitIntems, currentLevel, item),
                             DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
                             DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
                         sb.Append(");");
@@ -68,11 +69,23 @@ namespace DictionaryGenerator
                     }
 
                     lastKey = item;
-
+                    currentLevel++;
                 }
 
                 WriteDictionaryValues(result[splitIntems], definitionIds[lastKey]);
 
+            }
+        }
+
+        private static string GetParrent(string[] splitIntems, int currentLevel, string item)
+        {
+            if (splitIntems[0] == item)
+            {
+                return "null";
+            }
+            else
+            {
+                return definitionIds[splitIntems[currentLevel-1]].ToString();
             }
         }
 
