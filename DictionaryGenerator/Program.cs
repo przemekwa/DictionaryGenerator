@@ -124,7 +124,8 @@ namespace DictionaryGenerator
                 || item.ToLower().Contains("jakim?")
                 || item.ToLower().Contains("rrrr")
                 || item.ToLower().Contains("(rok – miesiąc – dzień)")
-                || item.ToLower().Contains("tak/nie"))
+                || item.ToLower().Contains("tak/nie")
+                || item.ToLower().Contains("kto?"))
             {
                 return "true";
             }
