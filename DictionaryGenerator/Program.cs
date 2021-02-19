@@ -123,6 +123,7 @@ namespace DictionaryGenerator
                 || item.ToLower().Contains("jakich?") 
                 || item.ToLower().Contains("jakim?")
                 || item.ToLower().Contains("jaka?")
+                || item.ToLower().Contains("jak?")
                 || item.ToLower().Contains("jakiej?")
                 || item.ToLower().Contains("jakiemu?")
                 || item.ToLower().Contains("rrrr")
