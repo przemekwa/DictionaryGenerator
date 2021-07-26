@@ -42,6 +42,8 @@ namespace DictionaryGenerator
             {
                 var lastKey = string.Empty;
                 var currentLevel = 0;
+                string lowerItem;
+                string isSingleChoice;
 
                 foreach (var item in splitIntems)
                 {
@@ -49,15 +51,24 @@ namespace DictionaryGenerator
                     {
                         definitionIds.Add(item, ++definitionId);
 
+                        lowerItem = item.ToLower();
+
+                        if ((isSingleChoice = GetIsSingleChoice(item)) == "true")
+                        {
+                            lowerItem = lowerItem.Remove((lowerItem.Length - 1), 1); //remove last char in string (*)
+                        }
+                        lowerItem = lowerItem.Remove(0, 1);
+
                         var sb = new StringBuilder();
 
-                        sb.Append("INSERT INTO public.\"DictionaryDefinitions\"(\"Id\", \"Name\", \"ParentId\", \"Created\", \"Modified\") VALUES (");
+                        sb.Append("INSERT INTO public.\"DictionaryDefinitions\"(\"Id\", \"Name\", \"ParentId\", \"IsSingleChoice\", \"Created\", \"Modified\") VALUES (");
 
                         sb.AppendFormat(
-                            "{0},'{1}',{2},'{3}','{4}'",
+                            "{0},'{1}',{2},'{3}','{4}','{5}'",
                             definitionIds[item],
-                            item,
+                            item[0] + lowerItem,
                             GetParrent(splitIntems, currentLevel, item),
+                            isSingleChoice,
                             DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
                             DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
                         sb.Append(");");
@@ -130,6 +141,16 @@ namespace DictionaryGenerator
                 || item.ToLower().Contains("(rok – miesiąc – dzień)")
                 || item.ToLower().Contains("tak/nie")
                 || item.ToLower().Contains("kto?"))
+            {
+                return "true";
+            }
+
+            return "false";
+        }
+
+        private static string GetIsSingleChoice(string item)
+        {
+            if (item.Contains("*"))
             {
                 return "true";
             }
