@@ -103,16 +103,23 @@ namespace DictionaryGenerator
         private static void WriteDictionaryValues(List<string> lists, int v)
         {
             var sb = new StringBuilder();
+            string isCustom;
+            string newItem;
 
             foreach (var item in lists)
             {
+                newItem = item;
+                if ((isCustom = GetIsCustom(item)) == "true")
+                    {
+                        newItem = item.Remove((item.Length - 1), 1);
+                    }
                 sb.Append("INSERT INTO public.\"DictionaryValues\"(\"Id\", \"Value\", \"IsCustom\", \"DictionaryDefinitionId\", \"Created\", \"Modified\") VALUES (");
                 
                 sb.AppendFormat(
                  "{0},'{1}','{2}',{3},'{4}','{5}'",
                  valueId++,
-                 item,
-                 GetIsCustom(item),
+                 newItem,
+                 isCustom,
                  v,
                  DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
                  DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
@@ -128,19 +135,7 @@ namespace DictionaryGenerator
 
         private static string GetIsCustom(string item)
         {
-            if (item.ToLower().Contains("jakie?") 
-                || item.ToLower().Contains("jaki?") 
-                || item.ToLower().Contains("jakiego?") 
-                || item.ToLower().Contains("jakich?") 
-                || item.ToLower().Contains("jakim?")
-                || item.ToLower().Contains("jaka?")
-                || item.ToLower().Contains("jak?")
-                || item.ToLower().Contains("jakiej?")
-                || item.ToLower().Contains("jakiemu?")
-                || item.ToLower().Contains("rrrr")
-                || item.ToLower().Contains("(rok – miesiąc – dzień)")
-                || item.ToLower().Contains("tak/nie")
-                || item.ToLower().Contains("kto?"))
+            if (item.ToLower().Contains("#"))
             {
                 return "true";
             }
