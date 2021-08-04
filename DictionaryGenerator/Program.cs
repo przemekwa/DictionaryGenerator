@@ -6,6 +6,16 @@ using System.Text;
 
 namespace DictionaryGenerator
 {
+    class DictionaryDefinition
+    {
+        public int Id;
+        public string ParentId;
+
+        public string Name;
+
+        public bool isSingleChoice;
+    }
+
     class Program
     {
         private const string DateFormat = "yyyy-MM-dd";
@@ -13,7 +23,7 @@ namespace DictionaryGenerator
 
         private static int definitionId = 0;
         private static int valueId = 0;
-        private static Dictionary<string, int> definitionIds = new Dictionary<string, int>();
+        private static List<DictionaryDefinition> definitions = new List<DictionaryDefinition>();
 
         static void Main(string[] args)
         {
@@ -38,65 +48,52 @@ namespace DictionaryGenerator
 
         private static void WritePosgreSqlScript(Dictionary<string[], List<string>> result)
         {
-            foreach (var splitIntems in result.Keys)
+            foreach (var definitionsArray in result.Keys)
             {
-                var lastKey = string.Empty;
-                var currentLevel = 0;
-                string lowerItem;
-                string isSingleChoice;
+                DictionaryDefinition parentDefinition = null;
 
-                foreach (var item in splitIntems)
+                foreach (var definitionName in definitionsArray)
                 {
-                    if (definitionIds.ContainsKey(item) == false)
+                    string ParentId = parentDefinition == null ? "null" : parentDefinition.Id.ToString();
+                    string ProcessedName = definitionName.Replace("*", "").ToLower();
+                    ProcessedName = char.ToUpper(ProcessedName[0]) + ProcessedName.Substring(1);
+                    DictionaryDefinition definition = definitions.Find(definition => (definition.ParentId == ParentId && definition.Name == ProcessedName));
+                    if(definition == null)
                     {
-                        definitionIds.Add(item, ++definitionId);
+                        bool isSingleChoice = definitionName.Contains("*");
 
-                        lowerItem = item.ToLower();
+                            definition = new DictionaryDefinition()
+                            {
+                                Id = ++definitionId,
+                                ParentId = ParentId,
+                                Name = ProcessedName,
+                                isSingleChoice = isSingleChoice,
+                            };
+                            definitions.Add(definition);
+                            var sb = new StringBuilder();
 
-                        if ((isSingleChoice = GetIsSingleChoice(item)) == "true")
-                        {
-                            lowerItem = lowerItem.Remove((lowerItem.Length - 1), 1); //remove last char in string (*)
-                        }
-                        lowerItem = lowerItem.Remove(0, 1);
+                            sb.Append("INSERT INTO public.\"DictionaryDefinitions\"(\"Id\", \"Name\", \"ParentId\", \"IsSingleChoice\", \"Created\", \"Modified\") VALUES (");
 
-                        var sb = new StringBuilder();
+                            sb.AppendFormat(
+                                "{0},'{1}',{2},'{3}','{4}','{5}'",
+                                definition.Id.ToString(),
+                                definition.Name,
+                                definition.ParentId,
+                                definition.isSingleChoice,
+                                DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
+                                DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
+                            sb.Append(");");
 
-                        sb.Append("INSERT INTO public.\"DictionaryDefinitions\"(\"Id\", \"Name\", \"ParentId\", \"IsSingleChoice\", \"Created\", \"Modified\") VALUES (");
+                            sb.AppendLine();
+                            sb.AppendLine();
 
-                        sb.AppendFormat(
-                            "{0},'{1}',{2},'{3}','{4}','{5}'",
-                            definitionIds[item],
-                            item[0] + lowerItem,
-                            GetParrent(splitIntems, currentLevel, item),
-                            isSingleChoice,
-                            DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
-                            DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture));
-                        sb.Append(");");
-
-                        sb.AppendLine();
-                        sb.AppendLine();
-
-                        File.AppendAllText(OutputFilename, sb.ToString());
+                            File.AppendAllText(OutputFilename, sb.ToString());
                     }
-
-                    lastKey = item;
-                    currentLevel++;
+                    parentDefinition = definition;
                 }
 
-                WriteDictionaryValues(result[splitIntems], definitionIds[lastKey]);
+                WriteDictionaryValues(result[definitionsArray], parentDefinition.Id);
 
-            }
-        }
-
-        private static string GetParrent(string[] splitIntems, int currentLevel, string item)
-        {
-            if (splitIntems[0] == item)
-            {
-                return "null";
-            }
-            else
-            {
-                return definitionIds[splitIntems[currentLevel-1]].ToString();
             }
         }
 
@@ -136,16 +133,6 @@ namespace DictionaryGenerator
         private static string GetIsCustom(string item)
         {
             if (item.ToLower().Contains("#"))
-            {
-                return "true";
-            }
-
-            return "false";
-        }
-
-        private static string GetIsSingleChoice(string item)
-        {
-            if (item.Contains("*"))
             {
                 return "true";
             }
