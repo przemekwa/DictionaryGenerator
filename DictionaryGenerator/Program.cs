@@ -101,21 +101,19 @@ namespace DictionaryGenerator
         {
             var sb = new StringBuilder();
             string isCustom;
-            string newItem;
 
             foreach (var item in lists)
             {
-                newItem = item;
-                if ((isCustom = GetIsCustom(item)) == "true")
-                    {
-                        newItem = item.Remove((item.Length - 1), 1);
-                    }
+                string ProcessedName = item.Replace("#", "").ToLower();
+                ProcessedName = char.ToUpper(ProcessedName[0]) + ProcessedName.Substring(1);
+                isCustom = GetIsCustom(item);
+
                 sb.Append("INSERT INTO public.\"DictionaryValues\"(\"Id\", \"Value\", \"IsCustom\", \"DictionaryDefinitionId\", \"Created\", \"Modified\") VALUES (");
                 
                 sb.AppendFormat(
                  "{0},'{1}','{2}',{3},'{4}','{5}'",
                  valueId++,
-                 newItem,
+                 ProcessedName,
                  isCustom,
                  v,
                  DateTime.Now.ToString(DateFormat, CultureInfo.InvariantCulture),
