@@ -21,8 +21,7 @@ namespace DictionaryGenerator
         private const string DateFormat = "yyyy-MM-dd";
         private const string OutputFilename = "dictionaries.sql";
 
-        private static int definitionId = 0;
-        private static int valueId = 0;
+        private static int Id = 0;
         private static List<DictionaryDefinition> definitions = new List<DictionaryDefinition>();
 
         static void Main(string[] args)
@@ -64,7 +63,7 @@ namespace DictionaryGenerator
 
                             definition = new DictionaryDefinition()
                             {
-                                Id = ++definitionId,
+                                Id = ++Id,
                                 ParentId = ParentId,
                                 Name = ProcessedName,
                                 isSingleChoice = isSingleChoice,
@@ -112,7 +111,7 @@ namespace DictionaryGenerator
                 
                 sb.AppendFormat(
                  "{0},'{1}','{2}',{3},'{4}','{5}'",
-                 valueId++,
+                 ++Id,
                  ProcessedName,
                  isCustom,
                  v,
