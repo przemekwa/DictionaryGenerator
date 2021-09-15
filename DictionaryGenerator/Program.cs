@@ -8,7 +8,7 @@ namespace DictionaryGenerator
 {
     class DictionaryDefinition
     {
-        public int Id;
+        public int Id = 4000;
         public string ParentId;
 
         public string Name;
@@ -21,7 +21,7 @@ namespace DictionaryGenerator
         private const string DateFormat = "yyyy-MM-dd";
         private const string OutputFilename = "dictionaries.sql";
 
-        private static int Id = 0;
+        private static int Id = 4000;
         private static List<DictionaryDefinition> definitions = new List<DictionaryDefinition>();
 
         static void Main(string[] args)
