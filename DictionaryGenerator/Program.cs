@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace DictionaryGenerator
@@ -24,6 +25,16 @@ namespace DictionaryGenerator
         private static int Id = 4000;
         private static List<DictionaryDefinition> definitions = new List<DictionaryDefinition>();
 
+        private static Dictionary<string, int> idForDefs = new Dictionary<string, int>
+        {
+            ["___first"] = 0
+        };
+         
+        private static Dictionary<string, int> idForValues = new Dictionary<string, int>
+        {
+            ["___first"] = 0
+        };
+
         static void Main(string[] args)
         {
             Console.WriteLine("DictionaryGenerator");
@@ -45,6 +56,32 @@ namespace DictionaryGenerator
             }
         }
 
+
+        public static int GetIdForDef(string defName)
+        {
+            if (idForDefs.ContainsKey(defName) == false)
+            { 
+                var maxValue = idForDefs.Values.Max();
+
+                idForDefs.Add(defName, maxValue + 100);
+            }
+
+            return idForDefs[defName];
+        }
+
+
+        public static int GetIdForValue(string valueName)
+        {
+            if (idForValues.ContainsKey(valueName) == false)
+            {
+                var maxValue = idForValues.Values.Max();
+
+                idForValues.Add(valueName, maxValue + 50);
+            }
+
+            return idForValues[valueName];
+        }
+
         private static void WritePosgreSqlScript(Dictionary<string[], List<string>> result)
         {
             foreach (var definitionsArray in result.Keys)
@@ -63,7 +100,7 @@ namespace DictionaryGenerator
 
                             definition = new DictionaryDefinition()
                             {
-                                Id = ++Id,
+                                Id = GetIdForDef($"{ProcessedName}{ParentId}"),
                                 ParentId = ParentId,
                                 Name = ProcessedName,
                                 isSingleChoice = isSingleChoice,
@@ -111,7 +148,7 @@ namespace DictionaryGenerator
                 
                 sb.AppendFormat(
                  "{0},'{1}','{2}',{3},'{4}','{5}'",
-                 ++Id,
+                 GetIdForValue($"{ProcessedName}{v}"),
                  ProcessedName,
                  isCustom,
                  v,
